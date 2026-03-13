@@ -26,6 +26,82 @@ This is an **enterprise-grade AI platform** that creates a unified credit scorin
 
 ---
 
+## 2026 Evaluator Upgrade Pack
+
+This repository now includes evaluator-requested improvements:
+
+- Real dataset transformation pipeline from public source schema.
+- CIBIL-style factor analysis in credit scoring.
+- Score increase/decrease reason reporting.
+- Real-time score improvement simulation endpoint.
+- Unique farmer-specific innovation factors integrated into scoring.
+
+Unique farmer factors now used by both rule-based scoring and ML feature pipeline:
+
+- `crop_type`
+- `season_income`
+- `farm_activity_level`
+- `transaction_consistency`
+- `weather_risk_index`
+- `input_dependency`
+
+### Dataset Sources
+
+- Kaggle German Credit dataset: `https://www.kaggle.com/datasets/uciml/german-credit`
+- Government open-data context: `https://data.gov.in/`
+
+### Generate transformed dataset
+
+```bash
+python data/transform_kaggle_farmer_dataset.py
+```
+
+Output file:
+
+`data/farmer_credit_dataset.csv`
+
+### Sync full data folder to Supabase
+
+To upload CSV rows from `data/` into Supabase and sync farmer summaries:
+
+```bash
+python sync_data_folder_to_supabase.py
+```
+
+This script:
+- Syncs `data/farmer_transactions.csv` into `farmers` summary fields.
+- Archives all CSV rows from `data/*.csv` into `data_lake_records` table.
+
+### Train with upgraded dataset
+
+```bash
+python models/train_model.py
+```
+
+The training script automatically prefers `data/farmer_credit_dataset.csv` and falls back to `data/farmer_transactions.csv`.
+
+### New API capability
+
+- `POST /api/get_credit_score`
+Now returns factor explainability fields:
+
+`factor_breakdown`, `increase_score_factors`, `decrease_score_factors`, `improvement_suggestions`
+
+- `POST /api/credit_score_simulator`
+Simulates score change for planned payment/credit actions.
+
+Example body:
+
+```json
+{
+        "mobile": "9553217055",
+        "village_code": "VILL001",
+        "payment_amount": 10000
+}
+```
+
+---
+
 ## 🏗️ **System Architecture**
 
 ```
@@ -109,6 +185,12 @@ FarmerCreditAI/
 - 🏘️ Village Risk Index
 - 📊 Payment Ratio (Derived)
 - 💰 Utilization Ratio (Derived)
+- 🌾 Crop Type
+- 🌤️ Season Income Strength
+- 🚜 Farm Activity Level
+- 🔁 Transaction Consistency
+- 🌧️ Weather Risk Index
+- 🧪 Input Dependency (Fertilizer/Seed credit pressure)
 
 ### **Credit Score Formula**
 ```python

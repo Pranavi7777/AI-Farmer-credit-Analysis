@@ -5,13 +5,19 @@ SQLite + PostgreSQL Support
 """
 
 import os
-from sqlalchemy import create_engine, Column, String, Integer, Float, DateTime, ForeignKey, Boolean
+from pathlib import Path
+from sqlalchemy import create_engine, Column, String, Integer, Float, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.pool import NullPool
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import secrets
+from dotenv import load_dotenv
+
+# Load production environment consistently for CLI scripts and utilities.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / '.env.production', override=False)
 
 Base = declarative_base()
 
@@ -185,6 +191,17 @@ class UserSession(Base):
     expires_at = Column(DateTime, nullable=False)
     ip_address = Column(String(50))
     is_active = Column(Boolean, default=True)
+
+
+class DataLakeRecord(Base):
+    """Store raw CSV rows from data folder for Supabase-backed archival/sync."""
+    __tablename__ = 'data_lake_records'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    source_file = Column(String(255), nullable=False)
+    record_hash = Column(String(64), nullable=False)
+    payload_json = Column(Text, nullable=False)
+    imported_at = Column(String(50), default=lambda: datetime.now().isoformat())
 
 def init_database(use_postgresql=False):
     """Initialize database with tables"""

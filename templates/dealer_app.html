@@ -200,6 +200,71 @@
             border-radius: 8px;
             margin-top: 20px;
         }
+
+        .insight-panel {
+            margin-top: 16px;
+            background: #f7f9fc;
+            border: 1px solid #dde6ef;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .insight-card {
+            background: #ffffff;
+            border: 1px solid #e5ecf2;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .insight-card h4 {
+            margin-bottom: 8px;
+            color: #1f3d2f;
+            font-size: 15px;
+        }
+
+        .insight-card ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 14px;
+        }
+
+        .insight-card li {
+            margin-bottom: 5px;
+        }
+
+        .factor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .factor-table th,
+        .factor-table td {
+            border-bottom: 1px solid #e6edf3;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .sim-grid input {
+            padding: 10px;
+            border: 1px solid #cdd8e2;
+            border-radius: 8px;
+        }
         
         .alert {
             padding: 15px;
@@ -354,6 +419,52 @@
                             <input type="text" id="dealerId" value="DEALER001" placeholder="Your dealer ID" required>
                         </div>
                     </div>
+                    <div style="margin-top: 8px; margin-bottom: 10px; font-weight: 600; color: #1f3d2f;">Innovation Factors (Evaluator)</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="txCropType">🌾 Crop Type</label>
+                            <select id="txCropType">
+                                <option value="">Auto Detect</option>
+                                <option value="Paddy">Paddy</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Pulses">Pulses</option>
+                                <option value="Vegetables">Vegetables</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Mixed">Mixed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="txSeasonIncome">💸 Season Income (₹)</label>
+                            <input type="number" id="txSeasonIncome" min="0" step="100" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label for="txFarmActivityLevel">🚜 Farm Activity Level</label>
+                            <select id="txFarmActivityLevel">
+                                <option value="">Auto Detect</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="txTransactionConsistency">🔁 Transaction Consistency</label>
+                            <select id="txTransactionConsistency">
+                                <option value="">Auto Detect</option>
+                                <option value="regular">Regular</option>
+                                <option value="irregular">Irregular</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="txWeatherRiskIndex">🌧️ Weather Risk Index (0-1)</label>
+                            <input type="number" id="txWeatherRiskIndex" min="0" max="1" step="0.01" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label for="txInputDependency">🧪 Input Dependency (0-1.5)</label>
+                            <input type="number" id="txInputDependency" min="0" max="1.5" step="0.01" placeholder="Optional">
+                        </div>
+                    </div>
                     <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
                         <div id="transactionPreview" style="color: #2e7d32; font-weight: 600;">Preview: Outstanding = ₹0</div>
                     </div>
@@ -384,6 +495,52 @@
                         </select>
                     </div>
                 </div>
+                <div style="margin-top: 8px; margin-bottom: 10px; font-weight: 600; color: #1f3d2f;">Optional Innovation Factors</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="quickCropType">🌾 Crop Type</label>
+                        <select id="quickCropType">
+                            <option value="">Auto Detect</option>
+                            <option value="Paddy">Paddy</option>
+                            <option value="Wheat">Wheat</option>
+                            <option value="Maize">Maize</option>
+                            <option value="Cotton">Cotton</option>
+                            <option value="Pulses">Pulses</option>
+                            <option value="Vegetables">Vegetables</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                            <option value="Mixed">Mixed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quickSeasonIncome">💸 Season Income (₹)</label>
+                        <input type="number" id="quickSeasonIncome" min="0" step="100" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="quickFarmActivityLevel">🚜 Farm Activity Level</label>
+                        <select id="quickFarmActivityLevel">
+                            <option value="">Auto Detect</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quickTransactionConsistency">🔁 Transaction Consistency</label>
+                        <select id="quickTransactionConsistency">
+                            <option value="">Auto Detect</option>
+                            <option value="regular">Regular</option>
+                            <option value="irregular">Irregular</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quickWeatherRiskIndex">🌧️ Weather Risk Index (0-1)</label>
+                        <input type="number" id="quickWeatherRiskIndex" min="0" max="1" step="0.01" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="quickInputDependency">🧪 Input Dependency (0-1.5)</label>
+                        <input type="number" id="quickInputDependency" min="0" max="1.5" step="0.01" placeholder="Optional">
+                    </div>
+                </div>
                 <button type="button" class="btn btn-secondary" onclick="quickCreditCheck()">
                     <span id="quickLoading" style="display: none;"><span class="loading"></span></span>
                     Get Current Credit Score
@@ -404,12 +561,133 @@
                     <h3 style="margin-bottom: 15px; color: #333;">📊 Farmer Profile</h3>
                     <div id="farmerDetails"></div>
                 </div>
+
+                <div class="insight-panel">
+                    <h3 style="color:#1f3d2f; margin-bottom: 4px;">Credit Score Drivers</h3>
+                    <p style="margin:0; color:#4b6278; font-size:14px;">These factors explain why the score is increasing or decreasing.</p>
+                    <div class="insight-grid">
+                        <div class="insight-card">
+                            <h4>📈 Increase Factors</h4>
+                            <ul id="increaseFactors"></ul>
+                        </div>
+                        <div class="insight-card">
+                            <h4>📉 Decrease Factors</h4>
+                            <ul id="decreaseFactors"></ul>
+                        </div>
+                        <div class="insight-card">
+                            <h4>🛠 Improvement Plan</h4>
+                            <ul id="improvementSuggestions"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight-panel">
+                    <h3 style="color:#1f3d2f; margin-bottom: 4px;">CIBIL-Style Factor Breakdown</h3>
+                    <div id="factorBreakdown"></div>
+                </div>
+
+                <div class="insight-panel">
+                    <h3 style="color:#1f3d2f; margin-bottom: 4px;">Unique Farmer Factors</h3>
+                    <div id="uniqueFarmerFactors"></div>
+                </div>
+
+                <div class="insight-panel">
+                    <h3 style="color:#1f3d2f; margin-bottom: 4px;">Real-Time Score Simulator</h3>
+                    <p style="margin:0; color:#4b6278; font-size:14px;">Try planned payment or new credit to estimate score change instantly.</p>
+                    <div class="sim-grid">
+                        <input id="simPaymentAmount" type="number" min="0" step="100" placeholder="Planned payment amount">
+                        <input id="simCreditAmount" type="number" min="0" step="100" placeholder="Planned new credit amount">
+                        <input id="simExpectedDelay" type="number" min="0" max="365" placeholder="Expected delay days">
+                    </div>
+                    <div class="sim-grid">
+                        <select id="simCropType">
+                            <option value="">Crop Type (Auto)</option>
+                            <option value="Paddy">Paddy</option>
+                            <option value="Wheat">Wheat</option>
+                            <option value="Maize">Maize</option>
+                            <option value="Cotton">Cotton</option>
+                            <option value="Pulses">Pulses</option>
+                            <option value="Vegetables">Vegetables</option>
+                            <option value="Sugarcane">Sugarcane</option>
+                            <option value="Mixed">Mixed</option>
+                        </select>
+                        <input id="simSeasonIncome" type="number" min="0" step="100" placeholder="Season income (optional)">
+                        <select id="simFarmActivityLevel">
+                            <option value="">Farm Activity (Auto)</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <select id="simTransactionConsistency">
+                            <option value="">Consistency (Auto)</option>
+                            <option value="regular">Regular</option>
+                            <option value="irregular">Irregular</option>
+                        </select>
+                        <input id="simWeatherRiskIndex" type="number" min="0" max="1" step="0.01" placeholder="Weather risk index">
+                        <input id="simInputDependency" type="number" min="0" max="1.5" step="0.01" placeholder="Input dependency">
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="margin-top:12px;" onclick="runDealerSimulation()">Run Score Simulation</button>
+                    <div id="simulationResult" style="margin-top:12px;"></div>
+                </div>
             </div>
         </div>
     </div>
     
     <script>
         let currentFarmerData = {};
+        let currentSimulationContext = null;
+
+        function getOptionalNumber(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const raw = el.value;
+            if (raw === '' || raw === null || raw === undefined) return null;
+            const num = parseFloat(raw);
+            return Number.isNaN(num) ? null : num;
+        }
+
+        function getOptionalText(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const value = (el.value || '').trim();
+            return value === '' ? null : value;
+        }
+
+        function buildInnovationPayload(prefix) {
+            return {
+                crop_type: getOptionalText(`${prefix}CropType`),
+                season_income: getOptionalNumber(`${prefix}SeasonIncome`),
+                farm_activity_level: getOptionalText(`${prefix}FarmActivityLevel`),
+                transaction_consistency: getOptionalText(`${prefix}TransactionConsistency`),
+                weather_risk_index: getOptionalNumber(`${prefix}WeatherRiskIndex`),
+                input_dependency: getOptionalNumber(`${prefix}InputDependency`)
+            };
+        }
+
+        function mergeInnovationPayload(...payloads) {
+            const keys = [
+                'crop_type',
+                'season_income',
+                'farm_activity_level',
+                'transaction_consistency',
+                'weather_risk_index',
+                'input_dependency'
+            ];
+            const merged = {};
+
+            keys.forEach((key) => {
+                for (const p of payloads) {
+                    if (!p) continue;
+                    const value = p[key];
+                    if (value !== null && value !== undefined && value !== '') {
+                        merged[key] = value;
+                        break;
+                    }
+                }
+            });
+
+            return merged;
+        }
         
         // Village data mapping for auto-fill
         const villageData = {
@@ -424,7 +702,10 @@
         document.getElementById('villageCode').addEventListener('change', function() {
             const selectedCode = this.value;
             const villageName = villageData[selectedCode] || '';
-            document.getElementById('villageName').value = villageName;
+            const villageNameInput = document.getElementById('villageName');
+            if (villageNameInput) {
+                villageNameInput.value = villageName;
+            }
             currentFarmerData.village_code = selectedCode;
             currentFarmerData.village_name = villageName;
         });
@@ -473,7 +754,10 @@
                     document.getElementById('farmerName').value = data.farmer_name || '';
                     document.getElementById('mobile').value = mobile;
                     document.getElementById('villageCode').value = villageCode;
-                    document.getElementById('villageName').value = villageData[villageCode] || '';
+                    const villageNameInput = document.getElementById('villageName');
+                    if (villageNameInput) {
+                        villageNameInput.value = villageData[villageCode] || '';
+                    }
                     
                     // Auto-populate transaction form
                     document.getElementById('txMobile').value = mobile;
@@ -513,7 +797,10 @@
             document.getElementById('farmerName').value = '';
             document.getElementById('mobile').value = '';
             document.getElementById('villageCode').value = '';
-            document.getElementById('villageName').value = '';
+            const villageNameInput = document.getElementById('villageName');
+            if (villageNameInput) {
+                villageNameInput.value = '';
+            }
             document.getElementById('txMobile').value = '';
             document.getElementById('txVillage').value = '';
             currentFarmerData = {};
@@ -590,6 +877,7 @@
                 delay_days: parseInt(document.getElementById('delayDays').value),
                 dealer_id: document.getElementById('dealerId').value
             };
+            Object.assign(transactionData, buildInnovationPayload('tx'));
             
             // Validation
             if (transactionData.credit_amount < 0 || transactionData.payment_amount < 0 || transactionData.purchase_amount < 0) {
@@ -647,8 +935,8 @@
             const mobile = document.getElementById('quickMobile').value;
             const villageCode = document.getElementById('quickVillage').value;
             
-            if (!mobile || !villageCode) {
-                showAlert('Please enter both mobile number and village code', 'error');
+            if (!mobile) {
+                showAlert('Please enter mobile number', 'error');
                 return;
             }
             
@@ -666,19 +954,23 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ mobile: mobile, village_code: villageCode })
+                    body: JSON.stringify({
+                        mobile: mobile,
+                        village_code: villageCode,
+                        ...buildInnovationPayload('quick')
+                    })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
                     displayCreditResult(data, {
-                        mobile: mobile,
-                        village_code: villageCode,
-                        village_name: villageData[villageCode],
+                        mobile: data.mobile || mobile,
+                        village_code: data.village_code || villageCode,
+                        village_name: villageData[data.village_code || villageCode],
                         farmer_name: data.farmer_name || 'Unknown'
                     });
-                    showAlert(`Credit check completed for ${data.farmer_name}`, 'success');
+                    showAlert(`Credit check completed for ${data.farmer_name} (${data.village_code || villageCode || 'village resolved'})`, 'success');
                 } else {
                     showAlert(data.error || 'Farmer not found in database', 'error');
                 }
@@ -689,11 +981,171 @@
             }
         }
         
+        function listHtml(items, emptyText) {
+            if (!items || !items.length) {
+                return `<li>${emptyText}</li>`;
+            }
+            return items.map(item => `<li>${item}</li>`).join('');
+        }
+
+        function renderFactorBreakdown(rows) {
+            const breakdownDiv = document.getElementById('factorBreakdown');
+            if (!rows || !rows.length) {
+                breakdownDiv.innerHTML = '<p style="margin: 0;">No factor breakdown available.</p>';
+                return;
+            }
+
+            const rowHtml = rows.map(row => `
+                <tr>
+                    <td>${(row.factor || '').replace(/_/g, ' ')}</td>
+                    <td>${row.weight}%</td>
+                    <td>${row.strength}</td>
+                    <td>${row.contribution}</td>
+                </tr>
+            `).join('');
+
+            breakdownDiv.innerHTML = `
+                <table class="factor-table">
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Weight</th>
+                            <th>Strength</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowHtml}</tbody>
+                </table>
+            `;
+        }
+
+        function updateInsightPanels(creditResult) {
+            document.getElementById('increaseFactors').innerHTML = listHtml(
+                creditResult.increase_score_factors,
+                'No strong positive factor identified yet'
+            );
+            document.getElementById('decreaseFactors').innerHTML = listHtml(
+                creditResult.decrease_score_factors,
+                'No major risk factor currently'
+            );
+            document.getElementById('improvementSuggestions').innerHTML = listHtml(
+                creditResult.improvement_suggestions,
+                'Maintain current repayment discipline'
+            );
+            renderFactorBreakdown(creditResult.factor_breakdown);
+            renderUniqueFarmerFactors(creditResult.unique_farmer_factors || {});
+        }
+
+        function renderUniqueFarmerFactors(factors) {
+            const target = document.getElementById('uniqueFarmerFactors');
+            if (!factors || Object.keys(factors).length === 0) {
+                target.innerHTML = '<p style="margin:0;">Unique farmer factor data not available.</p>';
+                return;
+            }
+
+            const rows = [
+                ['Crop Type', factors.crop_type || 'N/A'],
+                ['Season Income', factors.season_income != null ? `₹${Number(factors.season_income).toLocaleString()}` : 'N/A'],
+                ['Farm Activity Level', factors.farm_activity_level || 'N/A'],
+                ['Transaction Consistency', factors.transaction_consistency != null ? Number(factors.transaction_consistency).toFixed(2) : 'N/A'],
+                ['Weather Risk Index', factors.weather_risk_index != null ? Number(factors.weather_risk_index).toFixed(2) : 'N/A'],
+                ['Input Dependency', factors.input_dependency != null ? Number(factors.input_dependency).toFixed(2) : 'N/A']
+            ];
+
+            target.innerHTML = `
+                <table class="factor-table">
+                    <tbody>
+                        ${rows.map(([k, v]) => `<tr><td><strong>${k}</strong></td><td>${v}</td></tr>`).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function resolveSimulationContext() {
+            const quickMobile = document.getElementById('quickMobile').value;
+            const quickVillage = document.getElementById('quickVillage').value;
+            const txMobile = document.getElementById('txMobile').value;
+            const txVillage = document.getElementById('txVillage').value;
+
+            if (quickMobile && quickVillage) {
+                return { mobile: quickMobile, village_code: quickVillage };
+            }
+            if (txMobile && txVillage) {
+                return { mobile: txMobile, village_code: txVillage };
+            }
+            return currentSimulationContext;
+        }
+
+        async function runDealerSimulation() {
+            const context = resolveSimulationContext();
+            if (!context || !context.mobile || !context.village_code) {
+                showAlert('Load a farmer credit profile first, then run simulation', 'error');
+                return;
+            }
+
+            const paymentAmount = parseFloat(document.getElementById('simPaymentAmount').value) || 0;
+            const plannedCreditAmount = parseFloat(document.getElementById('simCreditAmount').value) || 0;
+            const expectedDelayRaw = document.getElementById('simExpectedDelay').value;
+            const expectedDelayDays = expectedDelayRaw === '' ? null : parseInt(expectedDelayRaw, 10);
+            const output = document.getElementById('simulationResult');
+            const innovationFactors = mergeInnovationPayload(
+                buildInnovationPayload('sim'),
+                buildInnovationPayload('quick'),
+                buildInnovationPayload('tx')
+            );
+
+            output.innerHTML = '<p style="margin:0; color:#2e4c63;">Running simulation...</p>';
+
+            try {
+                const response = await fetch('/api/credit_score_simulator', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobile: context.mobile,
+                        village_code: context.village_code,
+                        payment_amount: paymentAmount,
+                        planned_credit_amount: plannedCreditAmount,
+                        expected_delay_days: expectedDelayDays,
+                        ...innovationFactors
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    output.innerHTML = `<p style="margin:0; color:#c62828;">Simulation failed: ${data.error || 'Unknown error'}</p>`;
+                    return;
+                }
+
+                const sim = data.simulation;
+                const delta = sim.score_delta;
+                const deltaColor = delta >= 0 ? '#2e7d32' : '#c62828';
+                const deltaPrefix = delta >= 0 ? '+' : '';
+
+                output.innerHTML = `
+                    <div style="background:#ffffff; border:1px solid #d9e2ea; border-radius:8px; padding:12px;">
+                        <p style="margin:0 0 6px;"><strong>Current Score:</strong> ${sim.current.credit_score}</p>
+                        <p style="margin:0 0 6px;"><strong>Projected Score:</strong> ${sim.projected.credit_score}</p>
+                        <p style="margin:0; color:${deltaColor};"><strong>Delta:</strong> ${deltaPrefix}${delta}</p>
+                    </div>
+                `;
+
+                updateInsightPanels(sim.projected);
+            } catch (error) {
+                output.innerHTML = `<p style="margin:0; color:#c62828;">Simulation error: ${error.message}</p>`;
+            }
+        }
+
         function displayCreditResult(creditResult, farmerData) {
             const resultDiv = document.getElementById('creditResult');
             const scoreElement = document.getElementById('creditScore');
             const riskElement = document.getElementById('riskLevel');
             const fillElement = document.getElementById('scoreFill');
+
+            currentSimulationContext = {
+                mobile: farmerData.mobile,
+                village_code: farmerData.village_code
+            };
+            document.getElementById('simulationResult').innerHTML = '';
             
             scoreElement.textContent = creditResult.credit_score;
             riskElement.textContent = creditResult.risk_level;
@@ -720,6 +1172,8 @@
                 <p><strong>🏦 Village Risk Index:</strong> ${creditResult.village_risk_index ? (creditResult.village_risk_index * 100).toFixed(1) : 'N/A'}%</p>
                 <p><strong>⏰ Generated:</strong> ${new Date().toLocaleString()}</p>
             `;
+
+            updateInsightPanels(creditResult);
             
             resultDiv.style.display = 'block';
             resultDiv.scrollIntoView({ behavior: 'smooth' });

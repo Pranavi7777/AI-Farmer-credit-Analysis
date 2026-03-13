@@ -36,6 +36,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)  # 8 hour sessions
 # Database Configuration - Support both local and cloud
 USE_POSTGRESQL = os.getenv('USE_POSTGRESQL', 'true').lower() == 'true'
 DATABASE_URL = os.getenv('DATABASE_URL')
+ALLOW_SQLITE_FALLBACK = os.getenv('ALLOW_SQLITE_FALLBACK', 'false').lower() == 'true'
 
 # Configure Flask for production
 if os.getenv('FLASK_ENV') == 'production':
@@ -67,7 +68,7 @@ class EnterpriseAPI:
                 
         except Exception as e:
             print(f"❌ Database initialization failed: {e}")
-            if USE_POSTGRESQL:
+            if USE_POSTGRESQL and ALLOW_SQLITE_FALLBACK:
                 print("🔄 Falling back to SQLite...")
                 self.engine, self.SessionLocal = init_database(use_postgresql=False)
             else:
@@ -75,6 +76,23 @@ class EnterpriseAPI:
 
 # Initialize Enterprise API
 enterprise_api = EnterpriseAPI()
+
+
+def _resolve_farmer_by_mobile_or_id(session, mobile, village_code=None):
+    """Resolve farmer by exact mobile+village or fallback to latest mobile match."""
+    if village_code:
+        farmer_unique_id = f"{mobile}{village_code}"
+        farmer = session.query(Farmer).filter_by(farmer_unique_id=farmer_unique_id).first()
+        if farmer:
+            return farmer
+
+    # Fallback: choose the latest active record for this mobile.
+    return (
+        session.query(Farmer)
+        .filter_by(mobile=mobile)
+        .order_by(Farmer.last_transaction_date.desc(), Farmer.created_at.desc())
+        .first()
+    )
 
 # 🔐 Initialize Authentication System
 init_auth_routes(app, enterprise_api.SessionLocal)
@@ -176,6 +194,12 @@ def add_transaction():
         crop_season = data.get('crop_season', 'Kharif')
         delay_days = int(data.get('delay_days', 0))
         dealer_id = data.get('dealer_id', 'DEALER001')
+        crop_type = data.get('crop_type')
+        season_income = float(data.get('season_income', 0) or 0)
+        farm_activity_level = data.get('farm_activity_level')
+        transaction_consistency = data.get('transaction_consistency')
+        weather_risk_index = data.get('weather_risk_index')
+        input_dependency = data.get('input_dependency')
         
         farmer_unique_id = f"{mobile}{village_code}"
         
@@ -214,6 +238,8 @@ def add_transaction():
             farmer.last_transaction_date = datetime.now().isoformat()
             
             session.commit()
+
+            transaction_count = session.query(Transaction).filter_by(farmer_unique_id=farmer_unique_id).count()
             
             # Calculate credit score
             farmer_data = {
@@ -224,7 +250,14 @@ def add_transaction():
                 'payment_done': farmer.total_payments,
                 'outstanding_amount': farmer.current_outstanding,
                 'delay_days': delay_days,
-                'crop_season': crop_season
+                'crop_season': crop_season,
+                'crop_type': crop_type,
+                'season_income': season_income,
+                'farm_activity_level': farm_activity_level,
+                'transaction_consistency': transaction_consistency,
+                'transaction_count': transaction_count,
+                'weather_risk_index': weather_risk_index,
+                'input_dependency': input_dependency
             }
             
             credit_result = enterprise_api.credit_scorer.calculate_credit_score(farmer_data)
@@ -256,21 +289,53 @@ def get_credit_score():
     try:
         data = request.json
         mobile = data['mobile']
-        village_code = data['village_code']
-        
-        farmer_unique_id = f"{mobile}{village_code}"
+        village_code = data.get('village_code')
         
         session = enterprise_api.SessionLocal()
         try:
-            # Get latest farmer data
-            farmer = session.query(Farmer).filter_by(farmer_unique_id=farmer_unique_id).first()
+            farmer = _resolve_farmer_by_mobile_or_id(session, mobile, village_code)
             
             if not farmer:
                 return jsonify({'success': False, 'error': 'Farmer not found'}), 404
+
+            farmer_unique_id = farmer.farmer_unique_id
+            village_code = farmer.village_code
             
             # Get village data for risk index
             village = session.query(Village).filter_by(village_code=village_code).first()
             village_risk_index = village.risk_index if village else 0.8
+            latest_tx = (
+                session.query(Transaction)
+                .filter_by(farmer_unique_id=farmer_unique_id)
+                .order_by(Transaction.id.desc())
+                .first()
+            )
+            transaction_count = session.query(Transaction).filter_by(farmer_unique_id=farmer_unique_id).count()
+
+            # Recompute explainable score from current aggregates.
+            score_input = {
+                'mobile': mobile,
+                'village_code': village_code,
+                'total_purchase': farmer.total_purchases or 0,
+                'credit_taken': farmer.total_credit_taken or 0,
+                'payment_done': farmer.total_payments or 0,
+                'outstanding_amount': farmer.current_outstanding or 0,
+                'delay_days': int(data.get('delay_days', latest_tx.delay_days if latest_tx else 0) or 0),
+                'crop_season': data.get('crop_season', latest_tx.crop_season if latest_tx else 'Kharif'),
+                'crop_type': data.get('crop_type'),
+                'season_income': float(data.get('season_income', 0) or 0),
+                'farm_activity_level': data.get('farm_activity_level'),
+                'transaction_consistency': data.get('transaction_consistency'),
+                'transaction_count': transaction_count,
+                'weather_risk_index': data.get('weather_risk_index'),
+                'input_dependency': data.get('input_dependency')
+            }
+            explainable_score = enterprise_api.credit_scorer.calculate_credit_score(score_input)
+
+            # Persist latest score for dashboard consistency.
+            farmer.credit_score = explainable_score['credit_score']
+            farmer.risk_level = explainable_score['risk_level']
+            session.commit()
             
             # Get village analytics
             village_analytics = enterprise_api.credit_scorer.get_village_analytics(village_code)
@@ -278,20 +343,95 @@ def get_credit_score():
             return jsonify({
                 'success': True,
                 'farmer_unique_id': farmer_unique_id,
+                'mobile': farmer.mobile,
+                'village_code': village_code,
                 'farmer_name': farmer.farmer_name,
                 'total_purchases': farmer.total_purchases,
                 'total_credit_taken': farmer.total_credit_taken,
                 'total_payments': farmer.total_payments,
                 'current_outstanding': farmer.current_outstanding,
-                'credit_score': farmer.credit_score,
-                'risk_level': farmer.risk_level,
+                'credit_score': explainable_score['credit_score'],
+                'risk_level': explainable_score['risk_level'],
                 'village_risk_index': village_risk_index,
-                'village_analytics': village_analytics
+                'village_analytics': village_analytics,
+                'cibil_style_factors': explainable_score.get('cibil_style_factors', {}),
+                'factor_breakdown': explainable_score.get('factor_breakdown', []),
+                'increase_score_factors': explainable_score.get('increase_score_factors', []),
+                'decrease_score_factors': explainable_score.get('decrease_score_factors', []),
+                'improvement_suggestions': explainable_score.get('improvement_suggestions', []),
+                'unique_farmer_factors': explainable_score.get('unique_farmer_factors', {})
             })
             
         finally:
             session.close()
         
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/credit_score_simulator', methods=['POST'])
+@login_required
+@role_required(['DEALER', 'BANK_OFFICER', 'ADMIN'])
+@audit_action('SCORE_SIMULATION')
+def credit_score_simulator():
+    """Simulate score changes for planned payment/credit actions."""
+    try:
+        data = request.json
+        mobile = data['mobile']
+        village_code = data.get('village_code')
+
+        session = enterprise_api.SessionLocal()
+        try:
+            farmer = _resolve_farmer_by_mobile_or_id(session, mobile, village_code)
+            if not farmer:
+                return jsonify({'success': False, 'error': 'Farmer not found'}), 404
+
+            farmer_unique_id = farmer.farmer_unique_id
+            village_code = farmer.village_code
+
+            latest_tx = (
+                session.query(Transaction)
+                .filter_by(farmer_unique_id=farmer_unique_id)
+                .order_by(Transaction.id.desc())
+                .first()
+            )
+            transaction_count = session.query(Transaction).filter_by(farmer_unique_id=farmer_unique_id).count()
+
+            current_delay = data.get('current_delay_days')
+            if current_delay is None:
+                current_delay = latest_tx.delay_days if latest_tx else 0
+
+            baseline_data = {
+                'mobile': mobile,
+                'village_code': village_code,
+                'total_purchase': farmer.total_purchases or 0,
+                'credit_taken': farmer.total_credit_taken or 0,
+                'payment_done': farmer.total_payments or 0,
+                'outstanding_amount': farmer.current_outstanding or 0,
+                'delay_days': int(current_delay or 0),
+                'crop_season': data.get('crop_season', latest_tx.crop_season if latest_tx else 'Kharif'),
+                'crop_type': data.get('crop_type'),
+                'season_income': float(data.get('season_income', 0) or 0),
+                'farm_activity_level': data.get('farm_activity_level'),
+                'transaction_consistency': data.get('transaction_consistency'),
+                'transaction_count': transaction_count,
+                'weather_risk_index': data.get('weather_risk_index'),
+                'input_dependency': data.get('input_dependency')
+            }
+
+            simulation = enterprise_api.credit_scorer.simulate_credit_score(
+                baseline_data,
+                payment_amount=float(data.get('payment_amount', 0) or 0),
+                planned_credit_amount=float(data.get('planned_credit_amount', 0) or 0),
+                expected_delay_days=data.get('expected_delay_days')
+            )
+
+            return jsonify({
+                'success': True,
+                'farmer_unique_id': farmer_unique_id,
+                'simulation': simulation
+            })
+        finally:
+            session.close()
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 

@@ -103,6 +103,79 @@
         .detail-item strong {
             color: #2c5530;
         }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .insight-card {
+            background: #f7f9fb;
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid #e4eaef;
+        }
+
+        .insight-card h4 {
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #1f3d2f;
+        }
+
+        .insight-card ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .insight-card li {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .simulator-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 10px;
+            background: #eef8f2;
+            border: 1px solid #cde7d5;
+        }
+
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .simulator-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #c8d3dc;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .factor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .factor-table th,
+        .factor-table td {
+            border-bottom: 1px solid #e3e8ed;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .factor-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -121,6 +194,34 @@
                 <h2>🔍 Search Farmer Credit Profile</h2>
                 <input type="text" id="farmer-mobile" class="search-input" placeholder="Enter Farmer Mobile Number">
                 <input type="text" id="village-code" class="search-input" placeholder="Enter Village Code">
+                <p style="font-size: 14px; color: #3d4f5e; margin-top: 6px;">Optional evaluator factors</p>
+                <div class="factor-input-grid">
+                    <select id="bank-crop-type" class="simulator-input">
+                        <option value="">Crop Type (Auto)</option>
+                        <option value="Paddy">Paddy</option>
+                        <option value="Wheat">Wheat</option>
+                        <option value="Maize">Maize</option>
+                        <option value="Cotton">Cotton</option>
+                        <option value="Pulses">Pulses</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Sugarcane">Sugarcane</option>
+                        <option value="Mixed">Mixed</option>
+                    </select>
+                    <input id="bank-season-income" class="simulator-input" type="number" min="0" step="100" placeholder="Season income">
+                    <select id="bank-farm-activity" class="simulator-input">
+                        <option value="">Farm Activity (Auto)</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                    <select id="bank-transaction-consistency" class="simulator-input">
+                        <option value="">Transaction Consistency (Auto)</option>
+                        <option value="regular">Regular</option>
+                        <option value="irregular">Irregular</option>
+                    </select>
+                    <input id="bank-weather-risk" class="simulator-input" type="number" min="0" max="1" step="0.01" placeholder="Weather risk index">
+                    <input id="bank-input-dependency" class="simulator-input" type="number" min="0" max="1.5" step="0.01" placeholder="Input dependency">
+                </div>
                 <button onclick="searchFarmer()" class="search-btn">Search Credit Profile</button>
             </div>
             
@@ -129,12 +230,65 @@
     </div>
 
     <script>
+        let lastSearchContext = null;
+
+        function getOptionalNumber(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const raw = el.value;
+            if (raw === '' || raw === null || raw === undefined) return null;
+            const num = parseFloat(raw);
+            return Number.isNaN(num) ? null : num;
+        }
+
+        function getOptionalText(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const value = (el.value || '').trim();
+            return value === '' ? null : value;
+        }
+
+        function buildBankInnovationPayload(prefix) {
+            return {
+                crop_type: getOptionalText(`${prefix}-crop-type`),
+                season_income: getOptionalNumber(`${prefix}-season-income`),
+                farm_activity_level: getOptionalText(`${prefix}-farm-activity`),
+                transaction_consistency: getOptionalText(`${prefix}-transaction-consistency`),
+                weather_risk_index: getOptionalNumber(`${prefix}-weather-risk`),
+                input_dependency: getOptionalNumber(`${prefix}-input-dependency`)
+            };
+        }
+
+        function mergeInnovationPayload(...payloads) {
+            const keys = [
+                'crop_type',
+                'season_income',
+                'farm_activity_level',
+                'transaction_consistency',
+                'weather_risk_index',
+                'input_dependency'
+            ];
+            const merged = {};
+            keys.forEach((key) => {
+                for (const p of payloads) {
+                    if (!p) continue;
+                    const value = p[key];
+                    if (value !== null && value !== undefined && value !== '') {
+                        merged[key] = value;
+                        break;
+                    }
+                }
+            });
+            return merged;
+        }
+
         async function searchFarmer() {
             const mobile = document.getElementById('farmer-mobile').value;
             const villageCode = document.getElementById('village-code').value;
+            const innovationPayload = buildBankInnovationPayload('bank');
             
-            if (!mobile || !villageCode) {
-                alert('Please enter both mobile number and village code');
+            if (!mobile) {
+                alert('Please enter farmer mobile number');
                 return;
             }
             
@@ -144,14 +298,19 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         mobile: mobile,
-                        village_code: villageCode
+                        village_code: villageCode,
+                        ...innovationPayload
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    displayFarmerProfile(data);
+                    lastSearchContext = {
+                        mobile: data.mobile || mobile,
+                        village_code: data.village_code || villageCode
+                    };
+                    displayFarmerProfile(data, data.mobile || mobile, data.village_code || villageCode);
                 } else {
                     document.getElementById('search-results').innerHTML = `
                         <div class="farmer-card">
@@ -165,8 +324,71 @@
                 alert('Error searching farmer: ' + error.message);
             }
         }
-        
-        function displayFarmerProfile(data) {
+
+        function formatFactorName(factorName) {
+            return (factorName || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function renderListItems(items, emptyText) {
+            if (!items || !items.length) {
+                return `<li>${emptyText}</li>`;
+            }
+            return items.map(item => `<li>${item}</li>`).join('');
+        }
+
+        function renderFactorBreakdown(rows) {
+            if (!rows || !rows.length) {
+                return '<p style="margin:0;">No factor data available.</p>';
+            }
+
+            const rowHtml = rows.map(row => `
+                <tr>
+                    <td>${formatFactorName(row.factor)}</td>
+                    <td>${row.weight}%</td>
+                    <td>${row.strength}</td>
+                    <td>${row.contribution}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <table class="factor-table">
+                    <thead>
+                        <tr>
+                            <th>Factor</th>
+                            <th>Weight</th>
+                            <th>Strength</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowHtml}</tbody>
+                </table>
+            `;
+        }
+
+        function renderUniqueFarmerFactors(factors) {
+            if (!factors || Object.keys(factors).length === 0) {
+                return '<p style="margin:0;">Unique farmer factor data not available.</p>';
+            }
+
+            const rows = [
+                ['Crop Type', factors.crop_type || 'N/A'],
+                ['Season Income', factors.season_income != null ? `₹${Number(factors.season_income).toLocaleString()}` : 'N/A'],
+                ['Farm Activity Level', factors.farm_activity_level || 'N/A'],
+                ['Transaction Consistency', factors.transaction_consistency != null ? Number(factors.transaction_consistency).toFixed(2) : 'N/A'],
+                ['Weather Risk Index', factors.weather_risk_index != null ? Number(factors.weather_risk_index).toFixed(2) : 'N/A'],
+                ['Input Dependency', factors.input_dependency != null ? Number(factors.input_dependency).toFixed(2) : 'N/A']
+            ];
+
+            return `
+                <table class="factor-table">
+                    <tbody>
+                        ${rows.map(([key, value]) => `<tr><td><strong>${key}</strong></td><td>${value}</td></tr>`).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function displayFarmerProfile(data, mobile, villageCode) {
             // API returns data directly, not nested under 'farmer'
             const score = data.credit_score || 0;
             const riskLevel = data.risk_level || 'UNKNOWN';
@@ -193,10 +415,10 @@
                     
                     <div class="farmer-details">
                         <div class="detail-item">
-                            <strong>📱 Mobile:</strong><br>${data.farmer_unique_id ? data.farmer_unique_id.slice(0, -7) : 'Unknown'}
+                            <strong>📱 Mobile:</strong><br>${mobile || 'Unknown'}
                         </div>
                         <div class="detail-item">
-                            <strong>🏘️ Village:</strong><br>${data.farmer_unique_id ? data.farmer_unique_id.slice(-7) : 'Unknown'}
+                            <strong>🏘️ Village:</strong><br>${villageCode || 'Unknown'}
                         </div>
                         <div class="detail-item">
                             <strong>💰 Total Purchases:</strong><br>₹${(data.total_purchases || 0).toLocaleString()}
@@ -217,6 +439,72 @@
                             <strong>🆔 Farmer ID:</strong><br>${data.farmer_unique_id || 'Unknown'}
                         </div>
                     </div>
+
+                    <div class="insight-grid">
+                        <div class="insight-card">
+                            <h4>📈 Score Increase Factors</h4>
+                            <ul>${renderListItems(data.increase_score_factors, 'No positive factors identified yet')}</ul>
+                        </div>
+                        <div class="insight-card">
+                            <h4>📉 Score Decrease Factors</h4>
+                            <ul>${renderListItems(data.decrease_score_factors, 'No negative factors identified')}</ul>
+                        </div>
+                        <div class="insight-card">
+                            <h4>🛠 Improvement Suggestions</h4>
+                            <ul>${renderListItems(data.improvement_suggestions, 'Maintain current repayment behavior')}</ul>
+                        </div>
+                    </div>
+
+                    <div class="insight-card" style="margin-top: 12px;">
+                        <h4>📊 CIBIL-Style Factor Breakdown</h4>
+                        ${renderFactorBreakdown(data.factor_breakdown)}
+                    </div>
+
+                    <div class="insight-card" style="margin-top: 12px;">
+                        <h4>🌾 Unique Farmer Factors</h4>
+                        ${renderUniqueFarmerFactors(data.unique_farmer_factors)}
+                    </div>
+
+                    <div class="simulator-box">
+                        <h4 style="margin:0; color:#1f3d2f;">🎯 Credit Score Simulator</h4>
+                        <p style="margin: 8px 0 0; font-size: 14px; color: #2e4c3d;">Try actions and see how the score can increase or decrease.</p>
+                        <div class="simulator-grid">
+                            <input id="sim-payment-amount" class="simulator-input" type="number" min="0" step="100" placeholder="Planned payment amount">
+                            <input id="sim-credit-amount" class="simulator-input" type="number" min="0" step="100" placeholder="Planned new credit amount">
+                            <input id="sim-expected-delay" class="simulator-input" type="number" min="0" max="365" placeholder="Expected delay days">
+                        </div>
+                        <div class="simulator-grid">
+                            <select id="sim-crop-type" class="simulator-input">
+                                <option value="">Crop Type (Auto)</option>
+                                <option value="Paddy">Paddy</option>
+                                <option value="Wheat">Wheat</option>
+                                <option value="Maize">Maize</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Pulses">Pulses</option>
+                                <option value="Vegetables">Vegetables</option>
+                                <option value="Sugarcane">Sugarcane</option>
+                                <option value="Mixed">Mixed</option>
+                            </select>
+                            <input id="sim-season-income" class="simulator-input" type="number" min="0" step="100" placeholder="Season income">
+                            <select id="sim-farm-activity" class="simulator-input">
+                                <option value="">Farm Activity (Auto)</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                            <select id="sim-transaction-consistency" class="simulator-input">
+                                <option value="">Transaction Consistency (Auto)</option>
+                                <option value="regular">Regular</option>
+                                <option value="irregular">Irregular</option>
+                            </select>
+                            <input id="sim-weather-risk" class="simulator-input" type="number" min="0" max="1" step="0.01" placeholder="Weather risk index">
+                            <input id="sim-input-dependency" class="simulator-input" type="number" min="0" max="1.5" step="0.01" placeholder="Input dependency">
+                        </div>
+                        <button onclick="runSimulationFromBank()" class="search-btn">Run Simulation</button>
+                        <div id="simulation-output" style="margin-top: 12px;"></div>
+                    </div>
+
+                    ${!villageCode ? `<p style="margin-top: 10px; font-size: 13px; color: #52606d;">Resolved village from Supabase: <strong>${data.village_code || 'Unknown'}</strong></p>` : ''}
                     
                     <div style="margin-top: 25px; text-align: center;">
                         <button onclick="creditRecommendation('${data.farmer_unique_id}', ${score})" class="search-btn">💡 Get Credit Recommendation</button>
@@ -225,6 +513,61 @@
             `;
             
             document.getElementById('search-results').innerHTML = html;
+        }
+
+        async function runSimulationFromBank() {
+            if (!lastSearchContext) {
+                alert('Search farmer first before running simulator');
+                return;
+            }
+
+            const paymentAmount = parseFloat(document.getElementById('sim-payment-amount').value) || 0;
+            const plannedCreditAmount = parseFloat(document.getElementById('sim-credit-amount').value) || 0;
+            const expectedDelayRaw = document.getElementById('sim-expected-delay').value;
+            const expectedDelayDays = expectedDelayRaw === '' ? null : parseInt(expectedDelayRaw, 10);
+            const innovationPayload = mergeInnovationPayload(
+                buildBankInnovationPayload('sim'),
+                buildBankInnovationPayload('bank')
+            );
+
+            const output = document.getElementById('simulation-output');
+            output.innerHTML = '<p style="margin:0; color:#1f3d2f;">Running simulation...</p>';
+
+            try {
+                const response = await fetch('/api/credit_score_simulator', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobile: lastSearchContext.mobile,
+                        village_code: lastSearchContext.village_code,
+                        payment_amount: paymentAmount,
+                        planned_credit_amount: plannedCreditAmount,
+                        expected_delay_days: expectedDelayDays,
+                        ...innovationPayload
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    output.innerHTML = `<p style="margin:0;color:#c62828;">Simulation failed: ${data.error || 'Unknown error'}</p>`;
+                    return;
+                }
+
+                const simulation = data.simulation;
+                const delta = simulation.score_delta;
+                const deltaColor = delta >= 0 ? '#2e7d32' : '#c62828';
+                const deltaPrefix = delta >= 0 ? '+' : '';
+
+                output.innerHTML = `
+                    <div style="background:#ffffff;border:1px solid #d7e7dd;border-radius:8px;padding:12px;">
+                        <p style="margin:0 0 6px;"><strong>Current Score:</strong> ${simulation.current.credit_score}</p>
+                        <p style="margin:0 0 6px;"><strong>Projected Score:</strong> ${simulation.projected.credit_score}</p>
+                        <p style="margin:0;color:${deltaColor};"><strong>Delta:</strong> ${deltaPrefix}${delta}</p>
+                    </div>
+                `;
+            } catch (error) {
+                output.innerHTML = `<p style="margin:0;color:#c62828;">Simulation error: ${error.message}</p>`;
+            }
         }
         
         function creditRecommendation(farmerId, creditScore) {
@@ -304,13 +647,6 @@
         
         // Auto-focus on mobile input
         document.getElementById('farmer-mobile').focus();
-        
-        // Logout function
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '/logout';
-            }
-        }
         
         // Logout function
         function logout() {
