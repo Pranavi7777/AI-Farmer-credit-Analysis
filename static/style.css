@@ -1,0 +1,97 @@
+/* 
+🌾 AI Farmer Credit Intelligence Platform
+Enterprise CSS Styling
+*/
+
+:root {
+    --primary-green: #4CAF50;
+    --secondary-green: #45a049;
+    --primary-blue: #2196F3;
+    --warning-orange: #FF9800;
+    --danger-red: #F44336;
+    --gray-light: #f8f9fa;
+    --gray-medium: #e0e0e0;
+    --gray-dark: #333;
+    --shadow-light: 0 10px 25px rgba(0,0,0,0.1);
+    --shadow-medium: 0 15px 35px rgba(0,0,0,0.15);
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--gray-dark);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: var(--shadow-light);
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.form-input {
+    padding: 12px;
+    border: 2px solid var(--gray-medium);
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+    width: 100%;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+}
+
+.text-success { color: var(--primary-green); }
+.text-warning { color: var(--warning-orange); }
+.text-danger { color: var(--danger-red); }
+
+.bg-success { background-color: var(--primary-green); }
+.bg-warning { background-color: var(--warning-orange); }
+.bg-danger { background-color: var(--danger-red); }
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -1,0 +1,23 @@
+# Netlify Configuration for Static Frontend
+[build]
+  publish = "dist"
+  command = "python netlify_build.py"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://farmer-credit-ai-backend.onrender.com/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  API_URL = "https://farmer-credit-ai-backend.onrender.com"
+
+[context.deploy-preview.environment]
+  API_URL = "https://farmer-credit-ai-backend.onrender.com"

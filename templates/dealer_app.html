@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏪 Village Dealer App - AI Farmer Credit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c5530 0%, #4CAF50 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: rgba(244,67,54,0.8);
+        }
+        
+        .logout-btn:hover {
+            background: rgba(244,67,54,1);
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '🔸';
+            margin-right: 10px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #45a049 0%, #397d3a 100%);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            margin-top: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+        }
+        
+        .credit-result {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .score-gauge {
+            width: 100%;
+            height: 20px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .score-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .risk-low { color: #4CAF50; }
+        .risk-low .score-fill { background: linear-gradient(90deg, #4CAF50, #8BC34A); }
+        
+        .risk-medium { color: #FF9800; }
+        .risk-medium .score-fill { background: linear-gradient(90deg, #FF9800, #FFC107); }
+        
+        .risk-high { color: #F44336; }
+        .risk-high .score-fill { background: linear-gradient(90deg, #F44336, #E57373); }
+        
+        .farmer-info {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #F44336;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            margin-bottom: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.9em;
+        }
+        
+        .back-btn:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏪 Village Dealer App</h1>
+            <p>Multi-Village Farmer Credit Management System</p>
+            <div style="margin-top: 15px;">
+                <button onclick="logout()" class="nav-btn logout-btn">🔓 Logout</button>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <button class="btn back-btn" onclick="window.location.href='/'">⬅ Back to Dashboard</button>
+            
+            <div id="alertContainer"></div>
+            
+            <!-- Farmer Registration Section -->
+            <div class="form-section">
+                <div class="section-title">Farmer Registration</div>
+                <form id="farmerForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="farmerName">👤 Farmer Name</label>
+                            <input type="text" id="farmerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="mobile">📱 Mobile Number</label>
+                            <input type="text" id="mobile" pattern="[0-9]{10}" maxlength="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="villageCode">🏘️ Village Code</label>
+                            <select id="villageCode" required>
+                                <option value="">Select Village</option>
+                                <option value="VILL001">VILL001 - Rampur</option>
+                                <option value="VILL002">VILL002 - Krishnaganj</option>
+                                <option value="VILL003">VILL003 - Shaktigarh</option>
+                                <option value="VILL004">VILL004 - Dhanipur</option>
+                                <option value="VILL005">VILL005 - Sultanpur</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span id="registerLoading" style="display: none;"><span class="loading"></span></span>
+                        Register / Update Farmer
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Transaction Entry Section -->
+            <div class="form-section">
+                <div class="section-title">💰 Transaction Entry & Credit Management</div>
+                <form id="transactionForm">
+                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
+                        <h4 style="color: #e65100; margin-bottom: 10px;">⚠️ Important Transaction Rules:</h4>
+                        <ul style="margin: 0; color: #bf360c; font-size: 0.9em;">
+                            <li>Purchase Amount: Total value of products sold to farmer</li>
+                            <li>Credit Given: Amount provided as credit (can be ₹0 for cash sales)</li>
+                            <li>Payment Received: Immediate payment by farmer</li>
+                            <li>Outstanding = Credit Given - Payment Received</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="txMobile">📱 Farmer Mobile</label>
+                            <input type="text" id="txMobile" pattern="[0-9]{10}" maxlength="10" placeholder="Enter farmer mobile" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="txVillage">🏠 Farmer Village</label>
+                            <select id="txVillage" required>
+                                <option value="">Select Village</option>
+                                <option value="VILL001">VILL001 - Rampur</option>
+                                <option value="VILL002">VILL002 - Krishnaganj</option>
+                                <option value="VILL003">VILL003 - Shaktigarh</option>
+                                <option value="VILL004">VILL004 - Dhanipur</option>
+                                <option value="VILL005">VILL005 - Sultanpur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseAmount">💰 Purchase Amount (₹)</label>
+                            <input type="number" id="purchaseAmount" min="0" step="100" placeholder="Total product value" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="creditAmount">🏦 Credit Given (₹)</label>
+                            <input type="number" id="creditAmount" min="0" step="100" placeholder="Credit amount given" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentAmount">💵 Payment Received (₹)</label>
+                            <input type="number" id="paymentAmount" min="0" step="100" placeholder="Immediate payment" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cropSeason">🌾 Crop Season</label>
+                            <select id="cropSeason" required>
+                                <option value="Kharif">Kharif (Apr-Oct) - Monsoon Crops</option>
+                                <option value="Rabi">Rabi (Nov-Mar) - Winter Crops</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="delayDays">⏰ Payment Delay (Days)</label>
+                            <input type="number" id="delayDays" min="0" max="365" value="0" placeholder="Delay in days" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dealerId">🏪 Dealer ID</label>
+                            <input type="text" id="dealerId" value="DEALER001" placeholder="Your dealer ID" required>
+                        </div>
+                    </div>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <div id="transactionPreview" style="color: #2e7d32; font-weight: 600;">Preview: Outstanding = ₹0</div>
+                    </div>
+                    <button type="submit" class="btn">
+                        <span id="transactionLoading" style="display: none;"><span class="loading"></span></span>
+                        💾 Add Transaction & Update Credit Score
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Quick Credit Check -->
+            <div class="form-section">
+                <div class="section-title">Quick Credit Score Check</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="quickMobile">📱 Mobile Number</label>
+                        <input type="text" id="quickMobile" pattern="[0-9]{10}" maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="quickVillage">🏘️ Village Code</label>
+                        <select id="quickVillage">
+                            <option value="">Select Village</option>
+                            <option value="VILL001">VILL001 - Rampur</option>
+                            <option value="VILL002">VILL002 - Krishnaganj</option>
+                            <option value="VILL003">VILL003 - Shaktigarh</option>
+                            <option value="VILL004">VILL004 - Dhanipur</option>
+                            <option value="VILL005">VILL005 - Sultanpur</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="quickCreditCheck()">
+                    <span id="quickLoading" style="display: none;"><span class="loading"></span></span>
+                    Get Current Credit Score
+                </button>
+            </div>
+            
+            <!-- Credit Score Result -->
+            <div id="creditResult" class="credit-result">
+                <div class="score-display">
+                    <div id="creditScore" class="score-number">750</div>
+                    <div id="riskLevel" style="font-size: 1.5em; font-weight: 600;">LOW RISK</div>
+                    <div class="score-gauge">
+                        <div id="scoreFill" class="score-fill" style="width: 83%;"></div>
+                    </div>
+                </div>
+                
+                <div class="farmer-info" id="farmerInfo">
+                    <h3 style="margin-bottom: 15px; color: #333;">📊 Farmer Profile</h3>
+                    <div id="farmerDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentFarmerData = {};
+        
+        // Village data mapping for auto-fill
+        const villageData = {
+            'VILL001': 'Rampur',
+            'VILL002': 'Krishnaganj', 
+            'VILL003': 'Shaktigarh',
+            'VILL004': 'Dhanipur',
+            'VILL005': 'Sultanpur'
+        };
+        
+        // Auto-fill village name when village code is selected
+        document.getElementById('villageCode').addEventListener('change', function() {
+            const selectedCode = this.value;
+            const villageName = villageData[selectedCode] || '';
+            document.getElementById('villageName').value = villageName;
+            currentFarmerData.village_code = selectedCode;
+            currentFarmerData.village_name = villageName;
+        });
+        
+        // Transaction preview calculation
+        function updateTransactionPreview() {
+            const credit = parseFloat(document.getElementById('creditAmount').value) || 0;
+            const payment = parseFloat(document.getElementById('paymentAmount').value) || 0;
+            const outstanding = credit - payment;
+            
+            const previewElement = document.getElementById('transactionPreview');
+            previewElement.innerHTML = `Preview: Outstanding = ₹${outstanding.toLocaleString()} ${outstanding > 0 ? '(Credit)' : outstanding < 0 ? '(Overpaid)' : '(Settled)'}`;
+            previewElement.style.color = outstanding > 0 ? '#f57c00' : outstanding < 0 ? '#1976d2' : '#388e3c';
+        }
+        
+        // Add event listeners for transaction preview
+        document.getElementById('creditAmount').addEventListener('input', updateTransactionPreview);
+        document.getElementById('paymentAmount').addEventListener('input', updateTransactionPreview);
+        
+        // Search farmer functionality
+        async function searchFarmerProfile() {
+            const mobile = document.getElementById('searchMobile').value;
+            const villageCode = document.getElementById('searchVillage').value;
+            
+            if (!mobile || !villageCode) {
+                showAlert('Please enter both mobile number and village code to search', 'error');
+                return;
+            }
+            
+            if (mobile.length !== 10) {
+                showAlert('Mobile number must be exactly 10 digits', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/get_credit_score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile: mobile, village_code: villageCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Auto-populate farmer registration form
+                    document.getElementById('farmerName').value = data.farmer_name || '';
+                    document.getElementById('mobile').value = mobile;
+                    document.getElementById('villageCode').value = villageCode;
+                    document.getElementById('villageName').value = villageData[villageCode] || '';
+                    
+                    // Auto-populate transaction form
+                    document.getElementById('txMobile').value = mobile;
+                    document.getElementById('txVillage').value = villageCode;
+                    
+                    // Update current farmer data
+                    currentFarmerData = {
+                        farmer_name: data.farmer_name,
+                        mobile: mobile,
+                        village_code: villageCode,
+                        village_name: villageData[villageCode],
+                        farmer_unique_id: data.farmer_unique_id
+                    };
+                    
+                    // Display credit result
+                    displayCreditResult(data, currentFarmerData);
+                    
+                    showAlert(`Farmer found: ${data.farmer_name} | Credit Score: ${data.credit_score}`, 'success');
+                } else {
+                    showAlert('Farmer not found. Use the form below to register a new farmer.', 'error');
+                    clearFarmerForm();
+                }
+            } catch (error) {
+                showAlert('Error searching farmer: ' + error.message, 'error');
+            }
+        }
+        
+        // Clear search and form
+        function clearSearch() {
+            document.getElementById('searchMobile').value = '';
+            document.getElementById('searchVillage').value = '';
+            clearFarmerForm();
+            document.getElementById('creditResult').style.display = 'none';
+        }
+        
+        function clearFarmerForm() {
+            document.getElementById('farmerName').value = '';
+            document.getElementById('mobile').value = '';
+            document.getElementById('villageCode').value = '';
+            document.getElementById('villageName').value = '';
+            document.getElementById('txMobile').value = '';
+            document.getElementById('txVillage').value = '';
+            currentFarmerData = {};
+        }
+        
+        // Farmer Registration
+        document.getElementById('farmerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loadingSpan = document.getElementById('registerLoading');
+            loadingSpan.style.display = 'inline';
+            
+            const formData = {
+                farmer_name: document.getElementById('farmerName').value,
+                mobile: document.getElementById('mobile').value,
+                village_code: document.getElementById('villageCode').value
+            };
+            
+            try {
+                const response = await fetch('/api/register_farmer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    currentFarmerData = { ...formData, farmer_unique_id: data.farmer_unique_id };
+                    
+                    // Auto-populate transaction form
+                    document.getElementById('mobile').value = formData.mobile;
+                    document.getElementById('villageCode').value = formData.village_code;
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error registering farmer: ' + error.message, 'error');
+            } finally {
+                loadingSpan.style.display = 'none';
+            }
+        });
+        
+        // Transaction Entry
+        document.getElementById('transactionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const mobile = document.getElementById('txMobile').value;
+            const villageCode = document.getElementById('txVillage').value;
+            
+            if (!mobile || !villageCode) {
+                showAlert('Please enter farmer mobile and village for transaction', 'error');
+                return;
+            }
+            
+            if (mobile.length !== 10) {
+                showAlert('Mobile number must be exactly 10 digits', 'error');
+                return;
+            }
+            
+            const loadingSpan = document.getElementById('transactionLoading');
+            loadingSpan.style.display = 'inline';
+            
+            const transactionData = {
+                mobile: mobile,
+                village_code: villageCode,
+                purchase_amount: parseFloat(document.getElementById('purchaseAmount').value),
+                credit_amount: parseFloat(document.getElementById('creditAmount').value),
+                payment_amount: parseFloat(document.getElementById('paymentAmount').value),
+                crop_season: document.getElementById('cropSeason').value,
+                delay_days: parseInt(document.getElementById('delayDays').value),
+                dealer_id: document.getElementById('dealerId').value
+            };
+            
+            // Validation
+            if (transactionData.credit_amount < 0 || transactionData.payment_amount < 0 || transactionData.purchase_amount < 0) {
+                showAlert('Amounts cannot be negative', 'error');
+                loadingSpan.style.display = 'none';
+                return;
+            }
+            
+            if (transactionData.payment_amount > transactionData.credit_amount) {
+                const confirm_overpay = confirm('Payment amount is greater than credit amount. This will create an advance payment. Continue?');
+                if (!confirm_overpay) {
+                    loadingSpan.style.display = 'none';
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch('/api/add_transaction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(transactionData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message + ` | New Credit Score: ${data.credit_result.credit_score}`, 'success');
+                    displayCreditResult(data.credit_result, {
+                        mobile: mobile,
+                        village_code: villageCode,
+                        village_name: villageData[villageCode],
+                        farmer_name: currentFarmerData.farmer_name || 'Unknown'
+                    });
+                    
+                    // Clear transaction form but keep farmer data
+                    document.getElementById('purchaseAmount').value = '';
+                    document.getElementById('creditAmount').value = '';
+                    document.getElementById('paymentAmount').value = '';
+                    document.getElementById('delayDays').value = '0';
+                    updateTransactionPreview();
+                } else {
+                    showAlert(data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Error adding transaction: ' + error.message, 'error');
+            } finally {
+                loadingSpan.style.display = 'none';
+            }
+        });
+        
+        // Quick Credit Check
+        async function quickCreditCheck() {
+            const mobile = document.getElementById('quickMobile').value;
+            const villageCode = document.getElementById('quickVillage').value;
+            
+            if (!mobile || !villageCode) {
+                showAlert('Please enter both mobile number and village code', 'error');
+                return;
+            }
+            
+            if (mobile.length !== 10) {
+                showAlert('Mobile number must be exactly 10 digits', 'error');
+                return;
+            }
+            
+            const loadingSpan = document.getElementById('quickLoading');
+            loadingSpan.style.display = 'inline';
+            
+            try {
+                const response = await fetch('/api/get_credit_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ mobile: mobile, village_code: villageCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayCreditResult(data, {
+                        mobile: mobile,
+                        village_code: villageCode,
+                        village_name: villageData[villageCode],
+                        farmer_name: data.farmer_name || 'Unknown'
+                    });
+                    showAlert(`Credit check completed for ${data.farmer_name}`, 'success');
+                } else {
+                    showAlert(data.error || 'Farmer not found in database', 'error');
+                }
+            } catch (error) {
+                showAlert('Error getting credit score: ' + error.message, 'error');
+            } finally {
+                loadingSpan.style.display = 'none';
+            }
+        }
+        
+        function displayCreditResult(creditResult, farmerData) {
+            const resultDiv = document.getElementById('creditResult');
+            const scoreElement = document.getElementById('creditScore');
+            const riskElement = document.getElementById('riskLevel');
+            const fillElement = document.getElementById('scoreFill');
+            
+            scoreElement.textContent = creditResult.credit_score;
+            riskElement.textContent = creditResult.risk_level;
+            
+            // Update color scheme based on risk
+            const riskClass = creditResult.risk_level.includes('LOW') ? 'risk-low' : 
+                             creditResult.risk_level.includes('MEDIUM') ? 'risk-medium' : 'risk-high';
+            
+            scoreElement.className = 'score-number ' + riskClass;
+            riskElement.className = riskClass;
+            
+            // Update gauge fill
+            const fillPercent = (creditResult.credit_score / 900) * 100;
+            fillElement.style.width = fillPercent + '%';
+            fillElement.className = 'score-fill';
+            
+            // Update farmer info
+            const farmerDetails = document.getElementById('farmerDetails');
+            farmerDetails.innerHTML = `
+                <p><strong>🆔 Farmer ID:</strong> ${creditResult.farmer_unique_id}</p>
+                <p><strong>👤 Name:</strong> ${farmerData.farmer_name}</p>
+                <p><strong>📱 Mobile:</strong> ${farmerData.mobile}</p>
+                <p><strong>🏘️ Village:</strong> ${farmerData.village_code}</p>
+                <p><strong>🏦 Village Risk Index:</strong> ${creditResult.village_risk_index ? (creditResult.village_risk_index * 100).toFixed(1) : 'N/A'}%</p>
+                <p><strong>⏰ Generated:</strong> ${new Date().toLocaleString()}</p>
+            `;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function displayQuickCreditResult(data) {
+            const resultDiv = document.getElementById('creditResult');
+            const scoreElement = document.getElementById('creditScore');
+            const riskElement = document.getElementById('riskLevel');
+            const fillElement = document.getElementById('scoreFill');
+            
+            // Safe access to data properties
+            const creditScore = data.credit_score || 0;
+            const riskLevel = data.risk_level || 'UNKNOWN';
+            
+            scoreElement.textContent = creditScore;
+            riskElement.textContent = riskLevel;
+            
+            // Update color scheme
+            const riskClass = riskLevel.includes('LOW') ? 'risk-low' : 
+                             riskLevel.includes('MEDIUM') ? 'risk-medium' : 'risk-high';
+            
+            scoreElement.className = 'score-number ' + riskClass;
+            riskElement.className = riskClass;
+            
+            // Update gauge
+            const fillPercent = (creditScore / 900) * 100;
+            fillElement.style.width = fillPercent + '%';
+            
+            // Update farmer info with safe access
+            const farmerDetails = document.getElementById('farmerDetails');
+            farmerDetails.innerHTML = `
+                <p><strong>🆔 Farmer ID:</strong> ${data.farmer_unique_id || 'Unknown'}</p>
+                <p><strong>👤 Name:</strong> ${data.farmer_name || 'Unknown'}</p>
+                <p><strong>💰 Total Purchases:</strong> ₹${(data.total_purchases || 0).toLocaleString()}</p>
+                <p><strong>🏦 Total Credit:</strong> ₹${(data.total_credit_taken || 0).toLocaleString()}</p>
+                <p><strong>💳 Total Payments:</strong> ₹${(data.total_payments || 0).toLocaleString()}</p>
+                <p><strong>📊 Outstanding:</strong> ₹${(data.current_outstanding || 0).toLocaleString()}</p>
+            `;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    ${message}
+                </div>
+            `;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Auto-populate transaction form when farmer is selected
+        document.getElementById('mobile').addEventListener('input', function() {
+            currentFarmerData.mobile = this.value;
+        });
+        
+        document.getElementById('villageCode').addEventListener('change', function() {
+            currentFarmerData.village_code = this.value;
+        });
+        
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Render.com deployment configuration
+services:
+  - type: web
+    name: farmer-credit-ai-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn api.app:application
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://postgres.jpxnrsfmezugkuwkmoir:Pranavi%4072006@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres
+      - key: USE_POSTGRESQL  
+        value: true
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        value: farmer-credit-ai-production-2026

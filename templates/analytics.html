@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Risk Analytics Dashboard - AI Farmer Credit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c5530 0%, #4CAF50 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .analytics-container {
+            padding: 40px;
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .village-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .village-selector select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            min-width: 200px;
+        }
+        
+        .refresh-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 5px solid #4CAF50;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .metric-title {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-icon {
+            font-size: 1.5em;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .metric-subtitle {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .risk-distribution {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '📊';
+            margin-right: 10px;
+        }
+        
+        .risk-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .risk-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .risk-label {
+            min-width: 120px;
+            font-weight: 600;
+        }
+        
+        .risk-label.low { color: #4CAF50; }
+        .risk-label.medium { color: #FF9800; }
+        .risk-label.high { color: #F44336; }
+        
+        .risk-progress {
+            flex: 1;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .risk-progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        
+        .risk-progress-fill.low {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+        }
+        
+        .risk-progress-fill.medium {
+            background: linear-gradient(90deg, #FF9800, #FFC107);
+        }
+        
+        .risk-progress-fill.high {
+            background: linear-gradient(90deg, #F44336, #E57373);
+        }
+        
+        .village-analysis {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .analysis-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 5px solid #2196F3;
+        }
+        
+        .recommendation-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #1565c0;
+            font-weight: 500;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #F44336;
+            background: #ffebee;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .analytics-container {
+                padding: 20px;
+            }
+            
+            .village-analysis {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .village-selector {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Risk Analytics Dashboard</h1>
+            <p>Enterprise Village-Level Credit Intelligence</p>
+        </div>
+        
+        <div class="analytics-container">
+            <div class="control-panel">
+                <a href="/" class="back-btn">⬅ Back to Dashboard</a>
+                
+                <div class="village-selector">
+                    <label for="villageSelect"><strong>🏘️ Select Village:</strong></label>
+                    <select id="villageSelect" onchange="loadVillageAnalytics()">
+                        <option value="">All Villages Overview</option>
+                        <option value="VILL001">VILL001 - Rampur</option>
+                        <option value="VILL002">VILL002 - Krishnaganj</option>
+                        <option value="VILL003">VILL003 - Shaktigarh</option>
+                        <option value="VILL004">VILL004 - Dhanipur</option>
+                        <option value="VILL005">VILL005 - Sultanpur</option>
+                    </select>
+                </div>
+                
+                <button class="refresh-btn" onclick="loadAnalytics()">🔄 Refresh Data</button>
+            </div>
+            
+            <div id="loadingIndicator" class="loading">
+                <h3>📊 Loading Analytics...</h3>
+                <p>Analyzing farmer credit data across multiple villages...</p>
+            </div>
+            
+            <div id="analyticsContent" style="display: none;">
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Farmers</div>
+                            <div class="metric-icon">👥</div>
+                        </div>
+                        <div class="metric-value" id="totalFarmers">0</div>
+                        <div class="metric-subtitle">Active in System</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Avg Credit Score</div>
+                            <div class="metric-icon">🎯</div>
+                        </div>
+                        <div class="metric-value" id="avgCreditScore">0</div>
+                        <div class="metric-subtitle">Platform Average</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Business</div>
+                            <div class="metric-icon">💰</div>
+                        </div>
+                        <div class="metric-value" id="totalBusiness">₹0</div>
+                        <div class="metric-subtitle">Cumulative Purchases</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Outstanding</div>
+                            <div class="metric-icon">📊</div>
+                        </div>
+                        <div class="metric-value" id="totalOutstanding">₹0</div>
+                        <div class="metric-subtitle">Current Dues</div>
+                    </div>
+                </div>
+                
+                <!-- Risk Distribution -->
+                <div class="risk-distribution">
+                    <div class="section-title">Risk Distribution Analysis</div>
+                    
+                    <div class="risk-bars">
+                        <div class="risk-bar">
+                            <div class="risk-label low">🟢 LOW RISK</div>
+                            <div class="risk-progress">
+                                <div class="risk-progress-fill low" id="lowRiskFill" style="width: 0%;">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="risk-bar">
+                            <div class="risk-label medium">🟡 MEDIUM RISK</div>
+                            <div class="risk-progress">
+                                <div class="risk-progress-fill medium" id="mediumRiskFill" style="width: 0%;">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="risk-bar">
+                            <div class="risk-label high">🔴 HIGH RISK</div>
+                            <div class="risk-progress">
+                                <div class="risk-progress-fill high" id="highRiskFill" style="width: 0%;">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Village-Specific Analysis -->
+                <div id="villageAnalysis" style="display: none;">
+                    <div class="village-analysis">
+                        <div class="analysis-card">
+                            <div class="section-title">🏘️ Village Profile</div>
+                            <div id="villageProfile">
+                                <p><strong>Village Code:</strong> <span id="villageCode">-</span></p>
+                                <p><strong>Risk Index:</strong> <span id="villageRiskIndex">-</span></p>
+                                <p><strong>Risk Category:</strong> <span id="villageRiskCategory">-</span></p>
+                                <p><strong>Total Farmers:</strong> <span id="villageFarmers">-</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-card recommendation-card">
+                            <div class="section-title">💡 AI Recommendation</div>
+                            <div class="recommendation-text" id="villageRecommendation">
+                                Select a village to view AI-powered lending recommendations...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="errorContainer"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentVillageData = null;
+        
+        // Load analytics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalytics();
+        });
+        
+        async function loadAnalytics() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/dashboard_stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateMetrics(data);
+                    updateRiskDistribution({ low_risk: 0, medium_risk: 0, high_risk: 0 }); // Default for overview
+                    showContent(true);
+                } else {
+                    showError('Failed to load analytics data');
+                }
+            } catch (error) {
+                showError('Error loading analytics: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function loadVillageAnalytics() {
+            const villageCode = document.getElementById('villageSelect').value;
+            
+            if (!villageCode) {
+                // Load overview
+                document.getElementById('villageAnalysis').style.display = 'none';
+                loadAnalytics();
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/api/village_analytics/${villageCode}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentVillageData = data;
+                    updateVillageMetrics(data);
+                    updateRiskDistribution(data.risk_distribution);
+                    updateVillageProfile(data);
+                    showVillageAnalysis(true);
+                    showContent(true);
+                } else {
+                    showError('No data found for selected village');
+                }
+            } catch (error) {
+                showError('Error loading village analytics: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function updateMetrics(data) {
+            document.getElementById('totalFarmers').textContent = data.total_farmers;
+            document.getElementById('avgCreditScore').textContent = Math.round(data.avg_credit_score || 0);
+            
+            const totalBusiness = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 0
+            }).format(data.total_business || 0);
+            document.getElementById('totalBusiness').textContent = totalBusiness;
+            
+            const totalOutstanding = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 0
+            }).format(data.total_outstanding || 0);
+            document.getElementById('totalOutstanding').textContent = totalOutstanding;
+        }
+        
+        function updateVillageMetrics(data) {
+            document.getElementById('totalFarmers').textContent = data.total_farmers;
+            document.getElementById('avgCreditScore').textContent = Math.round(data.avg_credit_score || 0);
+            
+            const totalBusiness = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 0
+            }).format(data.total_purchases || 0);
+            document.getElementById('totalBusiness').textContent = totalBusiness;
+            
+            const totalOutstanding = new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 0
+            }).format(data.total_outstanding || 0);
+            document.getElementById('totalOutstanding').textContent = totalOutstanding;
+        }
+        
+        function updateRiskDistribution(riskData) {
+            const total = (riskData.low_risk || 0) + (riskData.medium_risk || 0) + (riskData.high_risk || 0);
+            
+            if (total === 0) {
+                // No data - reset to zero
+                document.getElementById('lowRiskFill').style.width = '0%';
+                document.getElementById('lowRiskFill').textContent = '0';
+                document.getElementById('mediumRiskFill').style.width = '0%';
+                document.getElementById('mediumRiskFill').textContent = '0';
+                document.getElementById('highRiskFill').style.width = '0%';
+                document.getElementById('highRiskFill').textContent = '0';
+                return;
+            }
+            
+            // Calculate percentages
+            const lowPercent = ((riskData.low_risk || 0) / total) * 100;
+            const mediumPercent = ((riskData.medium_risk || 0) / total) * 100;
+            const highPercent = ((riskData.high_risk || 0) / total) * 100;
+            
+            // Update visual bars
+            setTimeout(() => {
+                document.getElementById('lowRiskFill').style.width = lowPercent + '%';
+                document.getElementById('lowRiskFill').textContent = riskData.low_risk || 0;
+            }, 100);
+            
+            setTimeout(() => {
+                document.getElementById('mediumRiskFill').style.width = mediumPercent + '%';
+                document.getElementById('mediumRiskFill').textContent = riskData.medium_risk || 0;
+            }, 300);
+            
+            setTimeout(() => {
+                document.getElementById('highRiskFill').style.width = highPercent + '%';
+                document.getElementById('highRiskFill').textContent = riskData.high_risk || 0;
+            }, 500);
+        }
+        
+        function updateVillageProfile(data) {
+            document.getElementById('villageCode').textContent = data.village_code;
+            document.getElementById('villageRiskIndex').textContent = (data.village_risk_index * 100).toFixed(1) + '%';
+            document.getElementById('villageRiskCategory').textContent = data.village_risk_index > 0.9 ? 'Low Risk' : 
+                                                                          data.village_risk_index > 0.8 ? 'Medium Risk' : 'High Risk';
+            document.getElementById('villageFarmers').textContent = data.total_farmers;
+            document.getElementById('villageRecommendation').textContent = data.recommendation;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+        
+        function showContent(show) {
+            document.getElementById('analyticsContent').style.display = show ? 'block' : 'none';
+        }
+        
+        function showVillageAnalysis(show) {
+            document.getElementById('villageAnalysis').style.display = show ? 'block' : 'none';
+        }
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `
+                <div class="error">
+                    <h3>⚠️ Error Loading Data</h3>
+                    <p>${message}</p>
+                    <p><small>Please check if the ML model is trained and the API is running.</small></p>
+                </div>
+            `;
+            showContent(false);
+        }
+    </script>
+</body>
+</html>

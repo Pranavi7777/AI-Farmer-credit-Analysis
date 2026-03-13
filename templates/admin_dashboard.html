@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Admin Dashboard - Farmer Credit Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .admin-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #2c5530 0%, #4CAF50 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-header">
+            <h1>🔧 System Administrator</h1>
+            <p>Enterprise Credit Intelligence Platform</p>
+            <div style="margin-top: 15px;">
+                <button onclick="window.location.href='/dealer'" class="action-btn">📊 Dealer Module</button>
+                <button onclick="window.location.href='/analytics'" class="action-btn">📈 Analytics</button>
+                <button onclick="window.location.href='/bank_dashboard'" class="action-btn">🏦 Bank Portal</button>
+                <button onclick="logout()" class="action-btn">🔓 Logout</button>
+            </div>
+        </div>
+        
+        <div class="admin-grid">
+            <div class="admin-card">
+                <h3>👥 User Management</h3>
+                <div class="stat-number" id="total-users">—</div>
+                <p>Total Active Users</p>
+                <button class="action-btn" onclick="createUser()">➕ Add New User</button>
+                <button class="action-btn" onclick="viewUsers()">👁️ View All Users</button>
+            </div>
+            
+            <div class="admin-card">
+                <h3>🌾 Farmer Statistics</h3>
+                <div class="stat-number" id="total-farmers">—</div>
+                <p>Registered Farmers</p>
+                <button class="action-btn" onclick="exportFarmers()">💾 Export Data</button>
+                <button class="action-btn" onclick="viewRiskFarmers()">⚠️ High Risk Farmers</button>
+            </div>
+            
+            <div class="admin-card">
+                <h3>🏪 Village Analytics</h3>
+                <div class="stat-number" id="total-villages">—</div>
+                <p>Active Villages</p>
+                <button class="action-btn" onclick="villageRiskReport()">📊 Risk Report</button>
+                <button class="action-btn" onclick="addVillage()">🏘️ Add Village</button>
+            </div>
+            
+            <div class="admin-card">
+                <h3>💳 Credit Overview</h3>
+                <div class="stat-number" id="total-credit">₹—</div>
+                <p>Total Credit Outstanding</p>
+                <button class="action-btn" onclick="creditAnalysis()">📈 Analysis</button>
+                <button class="action-btn" onclick="defaultersList()">⚠️ Defaulters</button>
+            </div>
+            
+            <div class="admin-card">
+                <h3>🔍 Audit Logs</h3>
+                <div class="stat-number" id="today-activities">—</div>
+                <p>Today's Activities</p>
+                <button class="action-btn" onclick="viewAuditLogs()">📋 View Logs</button>
+                <button class="action-btn" onclick="securityReport()">🔒 Security Report</button>
+            </div>
+            
+            <div class="admin-card">
+                <h3>⚙️ System Health</h3>
+                <div class="stat-number" style="color: #4CAF50;">✓</div>
+                <p>All Systems Operational</p>
+                <button class="action-btn" onclick="systemBackup()">💾 Backup</button>
+                <button class="action-btn" onclick="systemSettings()">⚙️ Settings</button>
+            </div>
+        </div>
+        
+        <!-- User Creation Modal (Hidden by default) -->
+        <div id="user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px;">
+                <h2>👤 Create New User</h2>
+                <form id="create-user-form">
+                    <input type="text" name="username" placeholder="Username" required style="width: 100%; margin: 10px 0; padding: 10px;">
+                    <input type="email" name="email" placeholder="Email" required style="width: 100%; margin: 10px 0; padding: 10px;">
+                    <input type="password" name="password" placeholder="Password" required style="width: 100%; margin: 10px 0; padding: 10px;">
+                    <select name="role" required style="width: 100%; margin: 10px 0; padding: 10px;">
+                        <option value="">Select Role</option>
+                        <option value="DEALER">Dealer</option>
+                        <option value="BANK_OFFICER">Bank Officer</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                    <input type="text" name="village_code" placeholder="Village Code (for dealers)" style="width: 100%; margin: 10px 0; padding: 10px;">
+                    <input type="text" name="full_name" placeholder="Full Name" style="width: 100%; margin: 10px 0; padding: 10px;">
+                    <button type="submit" class="action-btn">Create User</button>
+                    <button type="button" class="action-btn" onclick="closeModal()">Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const data = await response.json();
+                
+                document.getElementById('total-users').textContent = data.users || 0;
+                document.getElementById('total-farmers').textContent = data.farmers || 0;
+                document.getElementById('total-villages').textContent = data.villages || 0;
+                document.getElementById('total-credit').textContent = `₹${data.credit?.toLocaleString() || 0}`;
+                document.getElementById('today-activities').textContent = data.activities || 0;
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+        
+        // User management functions
+        function createUser() {
+            document.getElementById('user-modal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('user-modal').style.display = 'none';
+        }
+        
+        document.getElementById('create-user-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const userData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/admin/create_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (response.ok) {
+                    alert('User created successfully!');
+                    closeModal();
+                    loadDashboardData();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to create user: ' + error.error);
+                }
+            } catch (error) {
+                alert('Error creating user: ' + error.message);
+            }
+        });
+        
+        // Quick action functions
+        function viewUsers() { alert('🚧 User list feature coming soon!'); }
+        function exportFarmers() { window.open('/api/admin/export/farmers', '_blank'); }
+        function viewRiskFarmers() { window.location.href = '/analytics?filter=high_risk'; }
+        function villageRiskReport() { window.location.href = '/analytics?view=village_risk'; }
+        function addVillage() { alert('🚧 Add village feature coming soon!'); }
+        function creditAnalysis() { window.location.href = '/analytics?view=credit'; }
+        function defaultersList() { window.location.href = '/analytics?filter=defaulters'; }
+        function viewAuditLogs() { alert('🚧 Audit logs viewer coming soon!'); }
+        function securityReport() { alert('🚧 Security report coming soon!'); }
+        function systemBackup() { alert('🚧 System backup feature coming soon!'); }
+        function systemSettings() { alert('🚧 System settings coming soon!'); }
+        
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+        
+        // Load data on page load
+        loadDashboardData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏦 Bank Officer Dashboard - Farmer Credit Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .bank-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .search-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: rgba(244,67,54,0.8);
+        }
+        
+        .logout-btn:hover {
+            background: rgba(244,67,54,1);
+        }
+        
+        .farmer-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-left: 5px solid #4CAF50;
+        }
+        
+        .credit-score {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .score-excellent { background: #4CAF50; color: white; }
+        .score-good { background: #8BC34A; color: white; }
+        .score-fair { background: #FFC107; color: black; }
+        .score-poor { background: #FF5722; color: white; }
+        
+        .farmer-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .detail-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .detail-item strong {
+            color: #2c5530;
+        }
+    </style>
+</head>
+<body>
+    <div class="bank-dashboard">
+        <div class="container">
+            <div class="header">
+                <h1>🏦 Bank Officer Dashboard</h1>
+                <p>Credit Assessment & Risk Analysis</p>
+                <div style="margin-top: 15px;">
+                    <button onclick="window.location.href='/'" class="nav-btn">Dashboard</button>
+                    <button onclick="logout()" class="nav-btn logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="search-section">
+                <h2>🔍 Search Farmer Credit Profile</h2>
+                <input type="text" id="farmer-mobile" class="search-input" placeholder="Enter Farmer Mobile Number">
+                <input type="text" id="village-code" class="search-input" placeholder="Enter Village Code">
+                <button onclick="searchFarmer()" class="search-btn">Search Credit Profile</button>
+            </div>
+            
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <script>
+        async function searchFarmer() {
+            const mobile = document.getElementById('farmer-mobile').value;
+            const villageCode = document.getElementById('village-code').value;
+            
+            if (!mobile || !villageCode) {
+                alert('Please enter both mobile number and village code');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/get_credit_score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobile: mobile,
+                        village_code: villageCode
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayFarmerProfile(data);
+                } else {
+                    document.getElementById('search-results').innerHTML = `
+                        <div class="farmer-card">
+                            <h3>❌ Farmer Not Found</h3>
+                            <p>No farmer found with mobile ${mobile} in village ${villageCode}</p>
+                            <p><strong>Suggestion:</strong> Check if farmer is registered in the system.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                alert('Error searching farmer: ' + error.message);
+            }
+        }
+        
+        function displayFarmerProfile(data) {
+            // API returns data directly, not nested under 'farmer'
+            const score = data.credit_score || 0;
+            const riskLevel = data.risk_level || 'UNKNOWN';
+            
+            let scoreClass = 'score-poor';
+            let displayRisk = 'HIGH RISK';
+            
+            if (score >= 750) { scoreClass = 'score-excellent'; displayRisk = 'LOW RISK'; }
+            else if (score >= 650) { scoreClass = 'score-good'; displayRisk = 'MEDIUM RISK'; }
+            else if (score >= 550) { scoreClass = 'score-fair'; displayRisk = 'MODERATE RISK'; }
+            
+            const html = `
+                <div class="farmer-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>👨‍🌾 ${data.farmer_name || 'Unknown Farmer'}</h2>
+                        <span style="background: ${score >= 650 ? '#4CAF50' : '#FF5722'}; color: white; padding: 8px 15px; border-radius: 15px;">
+                            ${displayRisk}
+                        </span>
+                    </div>
+                    
+                    <div class="credit-score ${scoreClass}">
+                        Credit Score: ${score}
+                    </div>
+                    
+                    <div class="farmer-details">
+                        <div class="detail-item">
+                            <strong>📱 Mobile:</strong><br>${data.farmer_unique_id ? data.farmer_unique_id.slice(0, -7) : 'Unknown'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>🏘️ Village:</strong><br>${data.farmer_unique_id ? data.farmer_unique_id.slice(-7) : 'Unknown'}
+                        </div>
+                        <div class="detail-item">
+                            <strong>💰 Total Purchases:</strong><br>₹${(data.total_purchases || 0).toLocaleString()}
+                        </div>
+                        <div class="detail-item">
+                            <strong>💳 Credit Taken:</strong><br>₹${(data.total_credit_taken || 0).toLocaleString()}
+                        </div>
+                        <div class="detail-item">
+                            <strong>💵 Payments Made:</strong><br>₹${(data.total_payments || 0).toLocaleString()}
+                        </div>
+                        <div class="detail-item">
+                            <strong>⚠️ Outstanding:</strong><br>₹${(data.current_outstanding || 0).toLocaleString()}
+                        </div>
+                        <div class="detail-item">
+                            <strong>📅 Risk Level:</strong><br>${riskLevel}
+                        </div>
+                        <div class="detail-item">
+                            <strong>🆔 Farmer ID:</strong><br>${data.farmer_unique_id || 'Unknown'}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px; text-align: center;">
+                        <button onclick="creditRecommendation('${data.farmer_unique_id}', ${score})" class="search-btn">💡 Get Credit Recommendation</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('search-results').innerHTML = html;
+        }
+        
+        function creditRecommendation(farmerId, creditScore) {
+            // Generate intelligent credit recommendation based on credit score
+            let recommendation = '';
+            let maxCredit = 0;
+            let interestRate = 0;
+            let riskMitigation = [];
+            let approvalStatus = '';
+            
+            if (creditScore >= 750) {
+                maxCredit = 500000;
+                interestRate = 8.5;
+                approvalStatus = 'APPROVED';
+                recommendation = 'Excellent Credit Profile - Low Risk';
+                riskMitigation = ['Minimal risk monitoring', 'Fast-track approval recommended', 'Standard documentation sufficient'];
+            } else if (creditScore >= 650) {
+                maxCredit = 300000;
+                interestRate = 12.0;
+                approvalStatus = 'APPROVED';
+                recommendation = 'Good Credit Profile - Medium Risk';
+                riskMitigation = ['Standard verification process', 'Collateral: Land/Assets recommended', 'Regular payment monitoring'];
+            } else if (creditScore >= 550) {
+                maxCredit = 150000;
+                interestRate = 15.0;
+                approvalStatus = 'CONDITIONAL APPROVAL';
+                recommendation = 'Fair Credit Profile - Moderate Risk';
+                riskMitigation = ['Enhanced monitoring required', 'Co-guarantor mandatory', 'Shorter repayment period (12-18 months)', 'Weekly payment schedule'];
+            } else {
+                maxCredit = 50000;
+                interestRate = 18.0;
+                approvalStatus = 'LIMITED APPROVAL';
+                recommendation = 'Poor Credit Profile - High Risk';
+                riskMitigation = ['Intensive monitoring required', 'Multiple guarantors needed', 'Asset collateral mandatory', 'Bi-weekly payment schedule', 'Financial counseling recommended'];
+            }
+            
+            // Create detailed recommendation modal
+            const modal = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+                    <div style="background: white; padding: 40px; border-radius: 20px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                        <h2 style="color: #4CAF50; text-align: center; margin-bottom: 25px;">💡 Credit Recommendation Report</h2>
+                        
+                        <div style="background: ${approvalStatus.includes('APPROVED') ? '#d4edda' : '#fff3cd'}; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 5px solid ${approvalStatus.includes('APPROVED') ? '#28a745' : '#ffc107'};">
+                            <h3 style="color: ${approvalStatus.includes('APPROVED') ? '#155724' : '#856404'}; margin-bottom: 15px;">📊 Credit Assessment</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div><strong>Decision:</strong><br><span style="color: ${approvalStatus.includes('APPROVED') ? '#28a745' : '#ffc107'}; font-weight: bold; font-size: 18px;">${approvalStatus}</span></div>
+                                <div><strong>Credit Score:</strong><br><span style="font-weight: bold; font-size: 18px;">${creditScore}</span></div>
+                                <div><strong>Max Credit Limit:</strong><br><span style="color: #4CAF50; font-weight: bold;">₹${maxCredit.toLocaleString()}</span></div>
+                                <div><strong>Interest Rate:</strong><br><span style="font-weight: bold;">${interestRate}% per annum</span></div>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <strong>Assessment:</strong> ${recommendation}
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                            <h4 style="color: #dc3545; margin-bottom: 15px;">⚠️ Required Risk Mitigation Measures:</h4>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                ${riskMitigation.map(item => `<li style="margin: 8px 0;">${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div style="background: #e3f2fd; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                            <h4 style="color: #1976d2; margin-bottom: 10px;">📈 Next Steps:</h4>
+                            <p style="margin: 0;">1. Complete KYC documentation<br>2. Asset verification (if applicable)<br>3. Guarantor verification (if required)<br>4. Final approval from credit committee</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #4CAF50; color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; font-size: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">✅ Close Report</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+        
+        // Auto-focus on mobile input
+        document.getElementById('farmer-mobile').focus();
+        
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+    </script>
+</body>
+</html>

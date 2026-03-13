@@ -1,0 +1,53 @@
+# 🌾 AI Farmer Credit Intelligence Platform  
+# Git Ignore Configuration
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Environment Variables  
+.env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# OS Generated
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary Files  
+*.tmp
+*.temp
+
+# Build artifacts (keep dist for deployment)
+build/
+
+# Database files (if any local ones)
+*.db
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# Development/Test files
+test_*.py
+debug_*.py
+demo_*.py
+*_test.py
+*_debug.py
