@@ -417,3 +417,5 @@ MIT License - Open source for social impact
 **💡 Remember**: *This is not just a credit scoring app - it's a digital financial identity infrastructure that can transform rural finance in India.*
 
 **🚀 Ready to scale from village to nation!**
+Created by: Sai Pranavi Karumuri  
+License: MIT
